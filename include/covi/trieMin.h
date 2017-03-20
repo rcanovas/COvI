@@ -16,7 +16,7 @@
 #define COVIL_TRIEMIN_H
 
 
-#include "../tools.h"
+//#include "../tools.h"
 #include <vector>
 #include <stack>
 #include <map>
