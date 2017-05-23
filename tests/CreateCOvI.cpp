@@ -17,6 +17,7 @@
 #include <iostream>
 
 #include "../include/covi/covi.h"
+#include "../include/covi/fullAC.h"
 
 
 using namespace std;
@@ -41,19 +42,26 @@ int main(int argc, char* argv[]) {
         cout << "opt: " << endl;
         cout << "-o output_name:  String containing the name of the output file. Default file_name.covi" << endl;
         cout << "-s separator:  (ASCII) Value used as separator between words. Default separator = 0" << endl;
+        cout << "-w Index_type. Default = 0" << endl;
+        cout << " # | Index_type" << endl;
+		cout << "---+--------------------" << endl;
+        cout << " 0 | COvI (Compressed Overlap Index)" << endl;
+        cout << " 1 | fullAC (Aho-Corasick)" << endl;
         return 0;
     }
 
     string file = argv[1];
     string out_file = file;
+    uint8_t w = 0;
     size_t separator = '\0';
 
     int c;
 	while((c = getopt (argc, argv, "o:w:s:")) != -1){
 		switch (c) {
             case 'o': out_file = optarg;  break;
+			case 'w': w = atoi(optarg); break;
             case 's': separator = atoi(optarg); break;
-			case '?': if(optopt == 'o' || optopt == 's')
+			case '?': if(optopt == 'o' || optopt == 'w' || optopt == 's')
                         fprintf (stderr, "Option -%c requires an argument.\n", optopt);
                       else
                         fprintf(stderr,"Unknown option character `\\x%x'.\n",	optopt);
@@ -63,7 +71,21 @@ int main(int argc, char* argv[]) {
 	}
 
     //create index
-    out_file += ".covi";
-    create_index<covil::covi<>>(file, out_file, separator);
+    switch (w) {
+        case 0:
+            cout << "Creating COvI" << endl;
+            out_file += ".covi";
+            create_index<covil::covi<>>(file, out_file, separator);
+            break;
+        case 1:
+            cout << "Creating fullAC" << endl;
+            out_file += ".fullac";
+            create_index<covil::fullAC<>>(file, out_file, separator);
+            break;
+        default:
+            cout << "index_type must be a value in [0,1]" << endl;
+            break;
+    }
+
     return 0;
 }
