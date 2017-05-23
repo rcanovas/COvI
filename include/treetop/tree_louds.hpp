@@ -153,6 +153,11 @@ namespace covil {
             return node_type(0, 2);
         }
 
+        bool
+        isRoot(const node_type& v) const {
+            return v == root();
+        }
+
         //! Returns the parent of a node v or root() if v==root().
         node_type
         parent(const node_type& v) const {
@@ -205,17 +210,18 @@ namespace covil {
             return an;
         }
 
-        //! Returns the tree depth of the node v
+        //!Returns the depth of the node in the tree
         size_type
-        depth(const node_type& v) {
-            node_type w = v;
+        depth(const node_type& v) const {
+            node_type x = v;
             size_type d = 0;
-            while (v != root()) {
-                d++;
-                w = parent(w);
+            while (x != root()) {
+                x = parent(x);
+                ++d;
             }
             return d;
         }
+
 
         //! Returns the number of children of v
         size_type
@@ -284,18 +290,6 @@ namespace covil {
                 return root();
             size_type one_pos = m_bv_select1(i + 1); //select the previous node ends
             return node_type(i, one_pos + 1);
-        }
-
-        //!Returns the depth of the node in the tree
-        size_type
-        depth(const node_type& v) const {
-            node_type x = v;
-            size_type d = 0;
-            while (x != root()) {
-                x = parent(x);
-                ++d;
-            }
-            return d;
         }
 
         //! Returns true if v is an ancestor of w

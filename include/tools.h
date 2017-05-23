@@ -18,13 +18,18 @@
     \author Rodrigo Canovas
 */
 
-#ifndef C_TOOLS_H
-#define C_TOOLS_H
+#ifndef COV_TOOLS_H
+#define COV_TOOLS_H
 
 #include <time.h>
 #include <sdsl/int_vector.hpp>
 
+#ifndef FACT_RANK
+#define FACT_RANK 20
+#endif
+
 namespace covil {
+
 
 //STATS Functions
 
@@ -75,6 +80,76 @@ namespace covil {
                   << std::endl;
         std::cout << "Min: " << min << "  Max: " << max << std::endl;
     }
+
+    //computes the accumulate frequency of the values in the set of size n
+    //we assumed that the values can not be bigger than n
+    sdsl::int_vector<>
+    accumulateFre(sdsl::int_vector<> &set) {
+        size_t max_value = 0, n = set.size();
+        sdsl::int_vector<> fre_ac(n, 0, (uint8_t)(sdsl::bits::hi(n) + 1));
+        for (size_t i = 0; i < n; ++i) {
+            fre_ac[set[i]]++;
+            if(max_value < set[i])
+                max_value = set[i];
+        }
+        for(size_t i = 1; i <= max_value; i++)
+            fre_ac[i] = fre_ac[i] + fre_ac[i - 1];
+        fre_ac.resize(max_value + 1);
+        return fre_ac;
+    }
+
+    //computes the optimal number of bits used to represent
+    // each level of a DAC (direct access code) given a set
+    std::vector<uint8_t>
+    bits_per_level(sdsl::int_vector<> &set) {
+        std::vector<uint8_t> kvalues;
+        sdsl::int_vector<> fre_ac = accumulateFre(set);
+        size_t max_value = fre_ac.size() - 1;
+        size_t list_length = fre_ac[max_value];
+        size_t nBits = sdsl::bits::hi(max_value) + 1;
+        //This table will contain the size of the best option for store the first x bits
+        std::vector<size_t> tableSize(nBits+1);
+        std::vector<size_t> tableNLevels(nBits+1);
+        std::vector<std::vector<size_t>> tableKvalues(nBits+1);
+
+        size_t maxSize = 0, maxPos = 0;
+        size_t posVocInf, posVocSup, currentSize;
+        tableSize[0] = 0;
+        tableNLevels[0] = 0;
+        for (size_t i = 1; i <= nBits; i++) {
+            maxSize = (size_t)-1;
+            maxPos = 0;
+            for (size_t j = 0; j < i; j++) {
+                if (i == nBits)
+                    posVocInf = 0;
+                else
+                    posVocInf = 1 << (nBits - i);
+                posVocSup = (1 << (nBits - j));
+                if (posVocSup >= max_value)
+                    posVocSup = max_value;
+                if (j == 0)
+                    currentSize = tableSize[j] +
+                            ((size_t) (fre_ac[max_value] - fre_ac[posVocInf])) * ((i - j));
+                else
+                    currentSize = tableSize[j] +
+                            ((size_t) (fre_ac[max_value] - fre_ac[posVocInf])) * ((i - j) + 1) +
+                            (fre_ac[max_value] - fre_ac[posVocInf]) / FACT_RANK;
+                if (maxSize > currentSize) {
+                    maxSize = currentSize;
+                    maxPos = j;
+                }
+            }
+            tableSize[i] = maxSize;
+            tableNLevels[i] = tableNLevels[maxPos] + 1;
+            tableKvalues[i] = std::vector<size_t>(tableNLevels[i]);
+            for (size_t j = 0; j < tableNLevels[i] - 1; j++)
+                tableKvalues[i][j] = tableKvalues[maxPos][j];
+            tableKvalues[i][tableNLevels[i] - 1] = i - maxPos;
+        }
+
+        return kvalues;
+    }
+
 }
 
-#endif //C_TOOLS_H
+#endif //COV_TOOLS_H

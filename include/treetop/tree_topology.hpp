@@ -55,6 +55,6 @@ namespace covil {
 }
 
 #include "tree_louds.hpp"
-
+#include "tree_bp.hpp"
 
 #endif //DISD_TREE_TOPOLOGY_HPP

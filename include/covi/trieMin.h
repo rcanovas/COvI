@@ -15,8 +15,7 @@
 #ifndef COVIL_TRIEMIN_H
 #define COVIL_TRIEMIN_H
 
-
-//#include "../tools.h"
+#include <sdsl/int_vector.hpp>
 #include <vector>
 #include <stack>
 #include <map>
@@ -83,6 +82,12 @@ namespace covil {
         }
 
         size_type
+        num_nodes() {
+            return m_neighbour.size();
+        }
+
+
+        size_type
         get_neighbour(size_type node) {
             return m_neighbour[node];
         }
@@ -103,6 +108,7 @@ namespace covil {
             }
             return 0;
         }
+
 
         void
         get_failure_links_and_ehog_nodes(sdsl::int_vector<> &failure_link,
@@ -160,8 +166,53 @@ namespace covil {
             }
             f_links.swap(failure_link);
             mark.swap(marked_nodes);
-
         }
+
+
+        void
+        get_failure_links(sdsl::int_vector<> &failure_link) {
+            sdsl::int_vector<> f_links(m_neighbour.size(), 0, (uint8_t)(sdsl::bits::hi(m_neighbour.size()) + 1));
+            std::queue<size_type> to_check;
+            std::queue<size_type> parent;
+            size_type current_node, current_parent, pos_label = 0, child, fl;
+            value_type symb = 0;
+            to_check.push(0);
+            parent.push(0);
+            while (!to_check.empty()) {
+                current_node = to_check.front();
+                current_parent = parent.front();
+                to_check.pop();
+                parent.pop();
+                //compute the failure link of the current node
+                if (current_parent == 0)
+                        f_links[current_node] = 0;
+                else {
+                    symb = (value_type)m_alphabet[current_node - 1];
+                    fl = f_links[current_parent];
+                    while (fl != 0) {
+                        child = get_child(symb, fl);
+                        if (child != 0) {
+                            fl = child;
+                            break;
+                        }
+                        fl = f_links[fl];
+                    }
+                    if (fl == 0) //check the root
+                        fl = get_child(symb, 0);
+                    f_links[current_node] = fl;
+                }
+                if (!is_leaf(current_node)) { //is not a leaf -> push children info to the queue
+                    child = current_node + 1; // first child
+                    while (child != 0) {
+                        to_check.push(child);
+                        parent.push(current_node);
+                        child = m_neighbour[child];
+                    }
+                }
+            }
+            f_links.swap(failure_link);
+        }
+
 
         void
         get_louds(sdsl::int_vector<> &louds_bitvector, sdsl::int_vector<> &alphabet) {
