@@ -5,6 +5,7 @@ set(CMAKE_BUILD_TYPE "Release")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+#Add sdsl library
 #change to the location of yours sdsl library
 include_directories(/home/rcanovas/include)
 link_directories(/home/rcanovas/lib)
