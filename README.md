@@ -21,7 +21,7 @@ To be able to compile the covi codes:
 
 ## Methods
 
--[CreateCOvI] (https://github.com/tests):
+-[CreateCOvI]:
 
 	Use: ./CreateCOvI <file_name> <opt>
       		<file_name>: Name of the file to be use to create the required data structure 
@@ -40,7 +40,7 @@ To be able to compile the covi codes:
 		output:  file.covi  or file.fullac
         
 
--[TestOperations] (https://github.com/tests):
+-[TestOperations]:
 
 	Use: ./TestOperations <index_file_name> -w type
 
